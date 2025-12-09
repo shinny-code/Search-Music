@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+    <item
+        android:id="@+id/musicList"
+        android:title="Music List"
+        android:icon="@drawable/music"/>
+    <item
+        android:id="@+id/search_music"
+        android:title="Search Music"
+        android:icon="@drawable/search_music"/>
+    <item
+        android:id="@+id/profile"
+        android:title="Profile"
+        android:icon="@drawable/profil"/>
+</menu>

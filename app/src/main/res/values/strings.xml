@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">MyMusicPlayer</string>
+
+    <string-array name="speed_options">
+        <item>0.5x</item>
+        <item>1.0x</item>
+        <item>1.5x</item>
+        <item>2.0x</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
