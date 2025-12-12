@@ -7,13 +7,24 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search Your Mood"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_marginTop="40dp"/>
+
     <EditText
         android:id="@+id/etSearch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Search music..."
+        android:textColorHint="#A7FFFFFF"
         android:padding="12dp"
-        android:layout_marginTop="20dp"/>
+        android:layout_marginTop="10dp"
+        android:textColor="@color/white"/>
 
     <Button
         android:id="@+id/btnSearch"
@@ -21,20 +32,30 @@
         android:layout_height="wrap_content"
         android:text="Search"/>
 
-    <!-- Progress bar untuk loading hasil pencarian -->
-    <ProgressBar
-        android:id="@+id/pbSearch"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="12dp"
-        android:layout_gravity="center"
-        android:visibility="gone"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvResult"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_weight="1"/>
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_search"
+        android:padding="22dp">
+
+        <!-- Progress bar untuk loading hasil pencarian -->
+        <ProgressBar
+            android:id="@+id/pbSearch"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResult"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible" />
+
+    </LinearLayout>
 
 </LinearLayout>

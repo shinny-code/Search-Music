@@ -1,46 +1,193 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/black">
+    android:fillViewport="true"
+    android:background="#101010">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/pink"
-        app:title="Music Playlist"
-        android:fitsSystemWindows="true"
-        app:titleTextColor="@android:color/white"/>
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- 🔍 Tambahkan SearchView di sini -->
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:queryHint="Search Music..."
-        android:iconifiedByDefault="false"
-        android:padding="8dp"/>
+        <!-- BANNER -->
+        <RelativeLayout
+            android:id="@+id/bannerContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="180dp"
+            android:background="@drawable/banner_gradient"
+            android:padding="16dp"
+            android:layout_marginTop="20dp"
+            android:clipToOutline="true">
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+            <!-- Profile Picture -->
+            <ImageView
+                android:id="@+id/ivProfile"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:src="@drawable/profile"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="5dp"
+                android:scaleType="centerCrop"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/tvUserName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/ivProfile"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="20dp"
+                android:text="Hi, Gina"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+
+            <!-- Search icon -->
+            <ImageView
+                android:id="@+id/ivSearch"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="50dp"
+                android:src="@drawable/search_white"/>
+
+            <ImageView
+                android:id="@+id/ivFav"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="12dp"
+                android:src="@drawable/heart_white"/>
+
+            <!-- tabs -->
+            <LinearLayout
+                android:id="@+id/tabFilter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="horizontal"
+                android:layout_marginTop="60dp"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tabAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="All"
+                    android:textColor="#000000"
+                    android:background="@drawable/tab_selected"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tabNew"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="New Release"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/tab_unselected"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tabTrending"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="Trending"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/tab_unselected"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tabTop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="Top"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/tab_unselected"/>
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <!-- =========================== TRENDING ======================================================== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Trending"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecommended"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <!-- ====================== Top Daily Playlist ===================== -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Top Daily Playlist"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvMusic"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="8dp" />
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
         <ProgressBar
             android:id="@+id/pbLoading"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"
             android:visibility="gone"/>
-    </FrameLayout>
 
-</LinearLayout>
+        <!-- Bottom padding for better scrolling -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="24dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
