@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.view;
 
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -20,6 +20,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mymusicplayer.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;

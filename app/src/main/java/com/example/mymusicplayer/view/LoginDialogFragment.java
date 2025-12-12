@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.view;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -11,6 +11,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+
+import com.example.mymusicplayer.R;
+import com.example.mymusicplayer.model.User;
+import com.example.mymusicplayer.database.AppDatabase;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

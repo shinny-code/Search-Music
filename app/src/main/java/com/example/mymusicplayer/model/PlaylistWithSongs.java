@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.model;
 
 import androidx.room.Embedded;
 import androidx.room.Relation;

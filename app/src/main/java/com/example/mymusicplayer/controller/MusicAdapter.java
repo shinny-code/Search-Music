@@ -1,6 +1,5 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.controller;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mymusicplayer.model.Music;
+import com.example.mymusicplayer.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;

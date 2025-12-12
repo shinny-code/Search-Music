@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.controller;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

@@ -1,9 +1,14 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.controller;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
-import androidx.room.Transaction;
+
+import com.example.mymusicplayer.model.Playlist;
+import com.example.mymusicplayer.model.PlaylistSong;
+import com.example.mymusicplayer.model.PlaylistSongCrossRef;
+import com.example.mymusicplayer.model.PlaylistWithSongsRaw;
+
 import java.util.List;
 
 @Dao

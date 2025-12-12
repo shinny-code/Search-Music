@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.model;
 
 public class TrendingModel {
     public String title;

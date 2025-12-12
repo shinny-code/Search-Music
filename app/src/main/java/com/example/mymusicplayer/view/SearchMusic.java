@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.view;
 
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -15,6 +15,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.example.mymusicplayer.model.Music;
+import com.example.mymusicplayer.controller.MusicAdapter;
+import com.example.mymusicplayer.controller.MusicClient;
+import com.example.mymusicplayer.model.Playlist;
+import com.example.mymusicplayer.model.PlaylistSong;
+import com.example.mymusicplayer.model.PlaylistSongCrossRef;
+import com.example.mymusicplayer.R;
+import com.example.mymusicplayer.model.User;
+import com.example.mymusicplayer.database.AppDatabase;
 
 import java.util.ArrayList;
 import java.util.List;

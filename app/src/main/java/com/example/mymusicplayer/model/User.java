@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.model;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;

@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.view;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -20,6 +20,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mymusicplayer.model.Music;
+import com.example.mymusicplayer.controller.MusicAdapter;
+import com.example.mymusicplayer.controller.MusicClient;
+import com.example.mymusicplayer.model.Playlist;
+import com.example.mymusicplayer.model.PlaylistSong;
+import com.example.mymusicplayer.model.PlaylistSongCrossRef;
+import com.example.mymusicplayer.R;
+import com.example.mymusicplayer.controller.TrendingAdapter;
+import com.example.mymusicplayer.model.TrendingModel;
+import com.example.mymusicplayer.model.User;
+import com.example.mymusicplayer.database.AppDatabase;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;

@@ -1,9 +1,16 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.database;
 
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import android.content.Context;
+
+import com.example.mymusicplayer.model.Playlist;
+import com.example.mymusicplayer.controller.PlaylistDao;
+import com.example.mymusicplayer.model.PlaylistSong;
+import com.example.mymusicplayer.model.PlaylistSongCrossRef;
+import com.example.mymusicplayer.model.User;
+import com.example.mymusicplayer.controller.UserDao;
 
 @Database(entities = {
         User.class,
