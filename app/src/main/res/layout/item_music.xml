@@ -49,8 +49,8 @@
 
     <ImageView
         android:id="@+id/ivMoreOptions"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:src="@drawable/menu"
         android:layout_gravity="center_vertical"
         android:clickable="true"

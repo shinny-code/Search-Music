@@ -2,6 +2,8 @@ package com.example.mymusicplayer.view;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.mymusicplayer.R;
@@ -49,12 +52,28 @@ public class LoginDialogFragment extends DialogFragment {
         btnRegister.setOnClickListener(v -> showRegisterDialog());
 
         builder.setView(view)
-                .setTitle("Login")
                 .setNegativeButton("Cancel", (dialog, which) -> {
                     dismiss();
                 });
 
-        return builder.create();
+        AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        dialog.setOnShowListener(dialogInterface -> {
+            Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            if (negativeButton != null) {
+                negativeButton.setTextColor(
+                        ContextCompat.getColor(requireContext(), R.color.white)
+                );
+                negativeButton.setAllCaps(false);
+                negativeButton.setTextSize(16);
+            }
+        });
+
+        return dialog;
     }
 
     private void attemptLogin() {
@@ -66,14 +85,12 @@ public class LoginDialogFragment extends DialogFragment {
             return;
         }
 
-        // Show loading
         Toast.makeText(requireContext(), "Logging in...", Toast.LENGTH_SHORT).show();
 
         executorService.execute(() -> {
             try {
                 AppDatabase db = AppDatabase.getDatabase(requireContext());
 
-                // First, clear any logged in users
                 db.userDao().clearLoggedInUsers();
 
                 // Check if user exists
@@ -81,7 +98,6 @@ public class LoginDialogFragment extends DialogFragment {
 
                 requireActivity().runOnUiThread(() -> {
                     if (user != null) {
-                        // Mark user as logged in - run in background thread
                         executorService.execute(() -> {
                             user.isLoggedIn = true;
                             db.userDao().updateUser(user);

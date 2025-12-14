@@ -1,20 +1,23 @@
 package com.example.mymusicplayer.view;
 
 import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.example.mymusicplayer.model.Music;
 import com.example.mymusicplayer.controller.MusicAdapter;
@@ -50,10 +53,8 @@ public class SearchMusic extends Fragment {
         super.onCreate(savedInstanceState);
         db = AppDatabase.getDatabase(requireContext());
 
-        // Initialize executor in onCreate
         executor = Executors.newSingleThreadExecutor();
 
-        // Get current logged in user
         executor.execute(() -> {
             User loggedInUser = db.userDao().getLoggedInUser();
             if (loggedInUser != null) {
@@ -85,7 +86,6 @@ public class SearchMusic extends Fragment {
                 ArrayList<String> artists = new ArrayList<>();
                 ArrayList<String> artworks = new ArrayList<>();
 
-                // Get all songs from adapter
                 List<Music> allMusic = adapter.getMusicList();
                 for (Music m : allMusic) {
                     urls.add(m.getUrlLagu() != null ? m.getUrlLagu() : "");
@@ -110,24 +110,75 @@ public class SearchMusic extends Fragment {
 
         rvResult.setAdapter(adapter);
 
-        // Load default music when fragment is created
+        // Setup keyboard Enter key behavior
+        setupKeyboardBehavior();
+
         loadDefaultMusic();
 
-        // Button click search
         btnSearch.setOnClickListener(v -> startSearch());
 
         return view;
     }
 
+    // NEW METHOD: Setup keyboard behavior
+    private void setupKeyboardBehavior() {
+        // Set OnEditorActionListener to handle Enter/Search key
+        etSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                        actionId == EditorInfo.IME_ACTION_DONE ||
+                        (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER &&
+                                event.getAction() == KeyEvent.ACTION_DOWN)) {
+
+                    // Hide keyboard
+                    hideKeyboard();
+
+                    // Trigger search
+                    startSearch();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        // Also handle hardware Enter key
+        etSearch.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+
+                    // Hide keyboard
+                    hideKeyboard();
+
+                    // Trigger search
+                    startSearch();
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    // Helper method to hide keyboard
+    private void hideKeyboard() {
+        if (getActivity() != null && etSearch != null) {
+            android.view.inputmethod.InputMethodManager imm =
+                    (android.view.inputmethod.InputMethodManager) getActivity().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            if (imm != null && etSearch.getWindowToken() != null) {
+                imm.hideSoftInputFromWindow(etSearch.getWindowToken(), 0);
+            }
+        }
+    }
+
     private void showAddToPlaylistDialog(Music music) {
-        // Check if user is logged in
         if (currentUserId == -1) {
             Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
             return;
         }
 
         executor.execute(() -> {
-            // Get ONLY this user's playlists
             List<Playlist> playlists = db.playlistDao().getUserPlaylists(currentUserId);
 
             if (getActivity() == null) return;
@@ -140,7 +191,6 @@ public class SearchMusic extends Fragment {
                 dialogOptions.add("Create new playlist...");
 
                 if (playlists.isEmpty()) {
-                    // If user has no playlists, suggest creating one
                     showCreatePlaylistDialog(music);
                     return;
                 }
@@ -167,12 +217,10 @@ public class SearchMusic extends Fragment {
     private void addSongToExistingPlaylist(Music music, long playlistId) {
         executor.execute(() -> {
             try {
-                // 1. Check if song already exists in songs table
                 PlaylistSong existingSong = db.playlistDao().getSongByUrl(music.getUrlLagu());
                 long songId;
 
                 if (existingSong == null) {
-                    // Song doesn't exist, insert it
                     PlaylistSong song = new PlaylistSong();
                     song.previewUrl = music.getUrlLagu();
                     song.trackName = music.getJudulLagu();
@@ -183,11 +231,9 @@ public class SearchMusic extends Fragment {
 
                     songId = db.playlistDao().insertSong(song);
                 } else {
-                    // Song already exists
                     songId = existingSong.songId;
                 }
 
-                // 2. Check if song is already in this playlist
                 int count = db.playlistDao().isSongInPlaylist((int) playlistId, (int) songId);
                 if (count > 0) {
                     requireActivity().runOnUiThread(() ->
@@ -196,13 +242,11 @@ public class SearchMusic extends Fragment {
                     return;
                 }
 
-                // 3. Create the link between the song and the playlist
                 PlaylistSongCrossRef crossRef = new PlaylistSongCrossRef();
                 crossRef.playlistId = (int) playlistId;
                 crossRef.songId = (int) songId;
                 db.playlistDao().addSongToPlaylist(crossRef);
 
-                // Show a confirmation toast on the main thread
                 requireActivity().runOnUiThread(() ->
                         Toast.makeText(requireContext(), "Song added to playlist", Toast.LENGTH_SHORT).show()
                 );
@@ -216,7 +260,6 @@ public class SearchMusic extends Fragment {
     }
 
     private void showCreatePlaylistDialog(Music music) {
-        // Check if user is logged in
         if (currentUserId == -1) {
             Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
             return;
@@ -240,11 +283,8 @@ public class SearchMusic extends Fragment {
                         newPlaylist.userId = currentUserId;
 
                         long playlistId = db.playlistDao().createPlaylist(newPlaylist);
-
-                        // Wait a bit to ensure playlist is created
                         Thread.sleep(100);
 
-                        // Now add the song
                         addSongToExistingPlaylist(music, (int) playlistId);
 
                         requireActivity().runOnUiThread(() -> {
@@ -268,18 +308,15 @@ public class SearchMusic extends Fragment {
         builder.show();
     }
 
-    // Method to load default music
     private void loadDefaultMusic() {
         progressBar.setVisibility(View.VISIBLE);
 
-        // Check if executor is still running
         if (executor == null || executor.isShutdown()) {
             executor = Executors.newSingleThreadExecutor();
         }
 
         executor.execute(() -> {
             try {
-                // Search for popular songs as default
                 String json = client.searchSongs("a", 15, 0);
                 List<Music> list = parseSongs(json);
 
@@ -288,7 +325,6 @@ public class SearchMusic extends Fragment {
                     progressBar.setVisibility(View.GONE);
 
                     if (list.isEmpty()) {
-                        // If no results for "popular", try "music" as backup
                         loadBackupDefaultMusic();
                     }
                 });
@@ -297,7 +333,6 @@ public class SearchMusic extends Fragment {
                 e.printStackTrace();
                 requireActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    // Load backup if API fails
                     loadBackupDefaultMusic();
                 });
             }
@@ -315,7 +350,6 @@ public class SearchMusic extends Fragment {
     private List<Music> getHardcodedDefaultSongs() {
         List<Music> defaultSongs = new ArrayList<>();
 
-        // Add popular songs (you can customize this list)
         defaultSongs.add(new Music("Blinding Lights", "Pop", "The Weeknd", "2020",
                 "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/6b/4c/05/6b4c05a6-8f5c-5c8f-5c5f-5c8f5c5f5c5f/source/100x100bb.jpg",
                 "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/6b/4c/05/6b4c05a6-8f5c-5c8f-5c5f-5c8f5c5f5c5f/mzaf_1234567890.m4a"));
@@ -342,7 +376,7 @@ public class SearchMusic extends Fragment {
     private void startSearch() {
         String keyword = etSearch.getText().toString().trim();
         if (keyword.isEmpty()) {
-            Toast.makeText(requireContext(), "Masukkan kata kunci!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "Please enter a search keyword!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -361,7 +395,7 @@ public class SearchMusic extends Fragment {
                     progressBar.setVisibility(View.GONE);
 
                     if (list.isEmpty()) {
-                        Toast.makeText(requireContext(), "Tidak ada hasil", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "No results found", Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -369,7 +403,7 @@ public class SearchMusic extends Fragment {
                 e.printStackTrace();
                 requireActivity().runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(requireContext(), "Gagal mengambil data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Failed to fetch data", Toast.LENGTH_SHORT).show();
                 });
             }
         });
@@ -418,7 +452,6 @@ public class SearchMusic extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh current user ID when fragment resumes
         if (executor == null || executor.isShutdown()) {
             executor = Executors.newSingleThreadExecutor();
         }

@@ -15,7 +15,6 @@ public class PlaylistSong {
     public String genre;
     public String releaseYear;
 
-    // Constructors
     public PlaylistSong() {}
 
     public PlaylistSong(String previewUrl, String trackName, String artistName,
@@ -28,7 +27,6 @@ public class PlaylistSong {
         this.releaseYear = releaseYear;
     }
 
-    // Add this constructor that accepts Music object
     public PlaylistSong(Music music) {
         this.previewUrl = music.getUrlLagu();
         this.trackName = music.getJudulLagu();

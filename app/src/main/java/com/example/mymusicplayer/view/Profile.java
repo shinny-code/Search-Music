@@ -14,12 +14,15 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.mymusicplayer.model.Playlist;
 import com.example.mymusicplayer.R;
 import com.example.mymusicplayer.model.User;
 import com.example.mymusicplayer.controller.PlaylistAdapter;
 import com.example.mymusicplayer.database.AppDatabase;
-import com.squareup.picasso.Picasso;
+
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,7 +40,6 @@ public class Profile extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = AppDatabase.getDatabase(requireContext());
-        // Initialize ExecutorService in onCreate
         executorService = Executors.newSingleThreadExecutor();
     }
 
@@ -54,6 +56,14 @@ public class Profile extends Fragment {
         btnLogout = v.findViewById(R.id.btnLogout);
         btnEditProfile = v.findViewById(R.id.btnEditProfile);
         rvPlaylists = v.findViewById(R.id.rvPlaylists);
+
+        ivProfile.setOnClickListener(view -> {
+            if (currentUser != null) {
+                showEditProfileDialog();
+            } else {
+                showLoginDialog();
+            }
+        });
 
         checkLoginStatus();
 
@@ -77,7 +87,6 @@ public class Profile extends Fragment {
     }
 
     private void checkLoginStatus() {
-        // Check if executor is still active
         if (executorService == null || executorService.isShutdown()) {
             executorService = Executors.newSingleThreadExecutor();
         }
@@ -102,19 +111,54 @@ public class Profile extends Fragment {
         tvUserName.setText(user.username != null ? user.username : "User");
         tvEmail.setText(user.email != null ? user.email : "user@example.com");
 
-        if (user.profilePictureUrl != null && !user.profilePictureUrl.isEmpty()) {
-            Picasso.get()
-                    .load(user.profilePictureUrl)
-                    .placeholder(R.drawable.profile)
-                    .error(R.drawable.profile)
-                    .into(ivProfile);
-        } else {
-            ivProfile.setImageResource(R.drawable.profile);
-        }
+        loadProfilePicture(user.profilePictureUrl);
 
         btnLogin.setVisibility(View.GONE);
         btnLogout.setVisibility(View.VISIBLE);
         btnEditProfile.setVisibility(View.VISIBLE);
+    }
+
+    private void loadProfilePicture(String profilePictureUrl) {
+        if (profilePictureUrl != null && !profilePictureUrl.isEmpty()) {
+            try {
+                if (profilePictureUrl.startsWith("/")) {
+                    File imageFile = new File(profilePictureUrl);
+
+                    if (imageFile.exists()) {
+                        Glide.with(requireContext())
+                                .load(imageFile)
+                                .placeholder(R.drawable.default_profile)
+                                .error(R.drawable.default_profile)
+                                .circleCrop() // Makes the image circular
+                                .diskCacheStrategy(DiskCacheStrategy.NONE) // Don't cache local files
+                                .into(ivProfile);
+
+                        System.out.println("Loaded profile picture from: " + profilePictureUrl);
+                    } else {
+                        System.out.println("Profile picture file not found: " + profilePictureUrl);
+                        setDefaultProfileImage();
+                    }
+                } else if (profilePictureUrl.startsWith("http") || profilePictureUrl.startsWith("content://")) {
+                    Glide.with(requireContext())
+                            .load(profilePictureUrl)
+                            .placeholder(R.drawable.default_profile)
+                            .error(R.drawable.default_profile)
+                            .circleCrop()
+                            .into(ivProfile);
+                } else {
+                    setDefaultProfileImage();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                setDefaultProfileImage();
+            }
+        } else {
+            setDefaultProfileImage();
+        }
+    }
+
+    private void setDefaultProfileImage() {
+        ivProfile.setImageResource(R.drawable.default_profile);
     }
 
     private void showGuestUI() {
@@ -123,7 +167,7 @@ public class Profile extends Fragment {
         tvUserName.setText("Guest User");
         tvEmail.setText("Login to see your profile");
         tvPlaylistCount.setText("0 playlists");
-        ivProfile.setImageResource(R.drawable.profile);
+        setDefaultProfileImage();
 
         btnLogin.setVisibility(View.VISIBLE);
         btnLogout.setVisibility(View.GONE);
@@ -133,7 +177,6 @@ public class Profile extends Fragment {
     }
 
     private void loadUserPlaylists() {
-        // Check if executor is still active
         if (executorService == null || executorService.isShutdown()) {
             executorService = Executors.newSingleThreadExecutor();
         }
@@ -163,16 +206,31 @@ public class Profile extends Fragment {
     private void showLoginDialog() {
         LoginDialogFragment loginDialog = new LoginDialogFragment();
         loginDialog.setOnLoginSuccessListener(() -> {
-            checkLoginStatus();
+            executorService.execute(() -> {
+                User loggedInUser = db.userDao().getLoggedInUser();
+                requireActivity().runOnUiThread(() -> {
+                    if (loggedInUser != null) {
+                        currentUser = loggedInUser;
+                        updateUIWithUserData(currentUser);
+                        loadUserPlaylists();
+                        Toast.makeText(requireContext(),
+                                "Welcome back, " + currentUser.username + "!",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
         });
         loginDialog.show(getParentFragmentManager(), "login_dialog");
     }
 
     private void showEditProfileDialog() {
+        if (currentUser == null) return;
+
         EditProfileDialogFragment editProfileDialog = EditProfileDialogFragment.newInstance(currentUser.userId);
         editProfileDialog.setOnProfileUpdatedListener(updatedUser -> {
             currentUser = updatedUser;
             updateUIWithUserData(currentUser);
+            Toast.makeText(requireContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show();
         });
         editProfileDialog.show(getParentFragmentManager(), "edit_profile_dialog");
     }
@@ -196,7 +254,6 @@ public class Profile extends Fragment {
 
         executorService.execute(() -> {
             if (currentUser != null) {
-                // Mark user as not logged in
                 currentUser.isLoggedIn = false;
                 db.userDao().updateUser(currentUser);
             }
@@ -214,16 +271,8 @@ public class Profile extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Shutdown executor when fragment is destroyed
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdownNow();
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // Don't shutdown executor here, only in onDestroy
-        // This prevents the RejectedExecutionException
     }
 }

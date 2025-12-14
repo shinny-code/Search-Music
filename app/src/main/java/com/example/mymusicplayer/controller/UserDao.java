@@ -27,6 +27,9 @@ public interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email")
     User getUserByEmail(String email);
 
+    @Query("SELECT * FROM users WHERE username = :username")
+    User getUserByUsername(String username);
+
     @Query("SELECT * FROM users WHERE isLoggedIn = 1 LIMIT 1")
     User getLoggedInUser();
 

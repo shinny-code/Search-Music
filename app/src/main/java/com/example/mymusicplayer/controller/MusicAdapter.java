@@ -66,7 +66,6 @@ public class MusicAdapter extends RecyclerView.Adapter<MusicAdapter.VH> {
         holder.tvArtist.setText(m.getPenyanyi());
         holder.tvYear.setText(m.getTahunRilis());
 
-        // ✨ Load artwork dengan Picasso
         Picasso.get()
                 .load(m.getFotoAlbum())
                 .placeholder(R.drawable.place_album)

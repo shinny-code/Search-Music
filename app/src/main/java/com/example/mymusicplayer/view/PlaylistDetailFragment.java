@@ -142,7 +142,6 @@ public class PlaylistDetailFragment extends Fragment {
 
         PlaylistSong currentSong = songs.get(position);
 
-        // Convert PlaylistSong list to Music list for PlayerFragment
         ArrayList<String> urls = new ArrayList<>();
         ArrayList<String> titles = new ArrayList<>();
         ArrayList<String> artists = new ArrayList<>();
@@ -193,7 +192,6 @@ public class PlaylistDetailFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh songs when fragment resumes
         loadPlaylistSongs();
     }
 }

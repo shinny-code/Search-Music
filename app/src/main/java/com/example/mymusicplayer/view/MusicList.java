@@ -20,6 +20,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.mymusicplayer.model.Music;
 import com.example.mymusicplayer.controller.MusicAdapter;
 import com.example.mymusicplayer.controller.MusicClient;
@@ -31,11 +33,11 @@ import com.example.mymusicplayer.controller.TrendingAdapter;
 import com.example.mymusicplayer.model.TrendingModel;
 import com.example.mymusicplayer.model.User;
 import com.example.mymusicplayer.database.AppDatabase;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -57,8 +59,8 @@ public class MusicList extends Fragment {
     private LinearLayoutManager layoutManager;
 
     private AppDatabase db;
-    private int currentUserId = -1; // Store current user ID
-    private TextView tvUserName; // Add this field
+    private int currentUserId = -1;
+    private TextView tvUserName;
     private User currentUser; // Store current user object
 
     @Override
@@ -87,10 +89,8 @@ public class MusicList extends Fragment {
         ImageView ivProfile = view.findViewById(R.id.ivProfile);
         tvUserName = view.findViewById(R.id.tvUserName); // Initialize the TextView
 
-        // Update user name in UI
         updateUserName();
 
-        // Load profile picture
         loadProfilePicture(ivProfile);
 
         recyclerView = view.findViewById(R.id.rvMusic);
@@ -138,12 +138,10 @@ public class MusicList extends Fragment {
 
         recyclerView.setAdapter(adapter);
 
-        // Setup click listeners for icons
         ImageView ivSearch = view.findViewById(R.id.ivSearch);
         ImageView ivFav = view.findViewById(R.id.ivFav);
 
         ivProfile.setOnClickListener(v -> {
-            // Navigate to Profile fragment
             Profile profileFragment = new Profile();
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -153,7 +151,6 @@ public class MusicList extends Fragment {
         });
 
         ivSearch.setOnClickListener(v -> {
-            // Navigate to Search fragment
             SearchMusic searchFragment = new SearchMusic();
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -163,7 +160,6 @@ public class MusicList extends Fragment {
         });
 
         ivFav.setOnClickListener(v -> {
-            // Navigate to Profile fragment or show favorite songs
             Profile profileFragment = new Profile();
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -172,7 +168,6 @@ public class MusicList extends Fragment {
                     .commit();
         });
 
-        // Setup tab click listeners
         setupTabListeners(view);
 
         RecyclerView rvTrending = view.findViewById(R.id.rvRecommended);
@@ -224,22 +219,64 @@ public class MusicList extends Fragment {
             requireActivity().runOnUiThread(() -> {
                 if (loggedInUser != null && loggedInUser.profilePictureUrl != null &&
                         !loggedInUser.profilePictureUrl.isEmpty()) {
-                    // Load profile picture from URL using Picasso
-                    Picasso.get()
-                            .load(loggedInUser.profilePictureUrl)
-                            .placeholder(R.drawable.profile)
-                            .error(R.drawable.profile)
-                            .into(ivProfile);
+
+                    loadProfilePictureWithGlide(loggedInUser.profilePictureUrl, ivProfile);
+
                 } else {
-                    // Use default circular profile picture
-                    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.profile);
-                    RoundedBitmapDrawable roundedDrawable =
-                            RoundedBitmapDrawableFactory.create(getResources(), bitmap);
-                    roundedDrawable.setCircular(true);
-                    ivProfile.setImageDrawable(roundedDrawable);
+                    setDefaultProfileImage(ivProfile);
                 }
             });
         });
+    }
+
+    private void loadProfilePictureWithGlide(String profilePictureUrl, ImageView imageView) {
+        try {
+            if (profilePictureUrl.startsWith("/")) {
+                File imageFile = new File(profilePictureUrl);
+
+                if (imageFile.exists()) {
+                    Glide.with(requireContext())
+                            .load(imageFile)
+                            .placeholder(R.drawable.default_profile)
+                            .error(R.drawable.default_profile)
+                            .circleCrop()
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .into(imageView);
+                } else {
+                    setDefaultProfileImage(imageView);
+                }
+            } else if (profilePictureUrl.startsWith("http") || profilePictureUrl.startsWith("content://")) {
+                Glide.with(requireContext())
+                        .load(profilePictureUrl)
+                        .placeholder(R.drawable.default_profile)
+                        .error(R.drawable.default_profile)
+                        .circleCrop()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(imageView);
+            } else {
+                setDefaultProfileImage(imageView);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            setDefaultProfileImage(imageView);
+        }
+    }
+
+    private void setDefaultProfileImage(ImageView imageView) {
+        try {
+            Glide.with(requireContext())
+                    .load(R.drawable.default_profile)
+                    .circleCrop()
+                    .into(imageView);
+        } catch (Exception e) {
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.default_profile);
+            if (bitmap != null) {
+                RoundedBitmapDrawable roundedDrawable =
+                        RoundedBitmapDrawableFactory.create(getResources(), bitmap);
+                roundedDrawable.setCircular(true);
+                imageView.setImageDrawable(roundedDrawable);
+            }
+        }
     }
 
     private void setupTabListeners(View view) {
@@ -249,7 +286,6 @@ public class MusicList extends Fragment {
         TextView tabTop = view.findViewById(R.id.tabTop);
 
         tabAll.setOnClickListener(v -> {
-            // Reset search to default
             currentQuery = "a";
             currentOffset = 0;
             loadMore();
@@ -257,7 +293,6 @@ public class MusicList extends Fragment {
         });
 
         tabNew.setOnClickListener(v -> {
-            // Search for new releases
             currentQuery = "2024";
             currentOffset = 0;
             loadMore();
@@ -265,7 +300,6 @@ public class MusicList extends Fragment {
         });
 
         tabTrending.setOnClickListener(v -> {
-            // Search for trending songs
             currentQuery = "popular";
             currentOffset = 0;
             loadMore();
@@ -273,7 +307,6 @@ public class MusicList extends Fragment {
         });
 
         tabTop.setOnClickListener(v -> {
-            // Search for top songs
             currentQuery = "top";
             currentOffset = 0;
             loadMore();
@@ -282,11 +315,9 @@ public class MusicList extends Fragment {
     }
 
     private void updateTabSelection(TextView selectedTab, TextView... otherTabs) {
-        // Update selected tab style
         selectedTab.setBackgroundResource(R.drawable.tab_selected);
         selectedTab.setTextColor(getResources().getColor(android.R.color.black));
 
-        // Update other tabs style
         for (TextView tab : otherTabs) {
             tab.setBackgroundResource(R.drawable.tab_unselected);
             tab.setTextColor(getResources().getColor(android.R.color.white));
@@ -359,7 +390,6 @@ public class MusicList extends Fragment {
     }
 
     private void showAddToPlaylistDialog(Music music) {
-        // Check if user is logged in
         if (currentUserId == -1) {
             Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
             return;
@@ -424,11 +454,8 @@ public class MusicList extends Fragment {
                         newPlaylist.userId = currentUserId;
 
                         long playlistId = db.playlistDao().createPlaylist(newPlaylist);
-
-                        // Wait a bit to ensure playlist is created
                         Thread.sleep(100);
 
-                        // Now add the song
                         addSongToExistingPlaylist(music, (int) playlistId);
 
                         requireActivity().runOnUiThread(() -> {
@@ -459,7 +486,6 @@ public class MusicList extends Fragment {
     private void addSongToExistingPlaylist(Music music, int playlistId) {
         executor.execute(() -> {
             try {
-                // 1. Check if playlist exists
                 List<Playlist> playlists = db.playlistDao().getUserPlaylists(currentUserId);
                 boolean playlistExists = false;
                 for (Playlist p : playlists) {
@@ -478,20 +504,16 @@ public class MusicList extends Fragment {
                     return;
                 }
 
-                // 2. Check if song already exists in songs table
                 PlaylistSong existingSong = db.playlistDao().getSongByUrl(music.getUrlLagu());
                 int songId;
 
                 if (existingSong == null) {
-                    // Song doesn't exist, insert it
                     PlaylistSong song = new PlaylistSong(music);
                     songId = (int) db.playlistDao().insertSong(song);
                 } else {
-                    // Song already exists
                     songId = existingSong.getSongId();
                 }
 
-                // 3. Check if song is already in this playlist
                 int count = db.playlistDao().isSongInPlaylist(playlistId, songId);
                 if (count > 0) {
                     requireActivity().runOnUiThread(() ->
@@ -502,7 +524,6 @@ public class MusicList extends Fragment {
                     return;
                 }
 
-                // 4. Create the link between the song and the playlist
                 PlaylistSongCrossRef crossRef = new PlaylistSongCrossRef(playlistId, songId);
                 db.playlistDao().addSongToPlaylist(crossRef);
 
@@ -526,8 +547,14 @@ public class MusicList extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh user info when fragment resumes
         updateUserName();
+
+        if (getView() != null) {
+            ImageView ivProfile = getView().findViewById(R.id.ivProfile);
+            if (ivProfile != null) {
+                loadProfilePicture(ivProfile);
+            }
+        }
     }
 
     @Override

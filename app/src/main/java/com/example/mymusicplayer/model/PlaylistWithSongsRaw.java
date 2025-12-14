@@ -25,18 +25,4 @@ public class PlaylistWithSongsRaw {
         playlist.setCreatedAt(createdAt);
         return playlist;
     }
-
-    @Ignore
-    public PlaylistSong getSong() {
-        if (songId == null) return null;
-        PlaylistSong song = new PlaylistSong();
-        song.setSongId(songId);
-        song.setPreviewUrl(previewUrl);
-        song.setTrackName(trackName);
-        song.setArtistName(artistName);
-        song.setArtworkUrl(artworkUrl);
-        song.setGenre(genre);
-        song.setReleaseYear(releaseYear);
-        return song;
-    }
 }

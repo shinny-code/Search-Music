@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.SearchMusic"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/black">
 
+    <!-- Header -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,42 +17,62 @@
         android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="@color/white"
-        android:layout_marginTop="40dp"/>
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="24dp"/>
 
-    <EditText
-        android:id="@+id/etSearch"
+    <!-- Search Input -->
+    <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search music..."
-        android:textColorHint="#A7FFFFFF"
-        android:padding="12dp"
-        android:layout_marginTop="10dp"
-        android:textColor="@color/white"/>
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search music..."
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:maxLines="1"
+            android:padding="16dp"
+            android:textSize="16sp"
+            android:textColor="@color/white"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Search Button -->
     <Button
         android:id="@+id/btnSearch"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Search"/>
+        android:layout_height="56dp"
+        android:text="Search"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:backgroundTint="@color/white"
+        android:textColor="@color/primary"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"
+        android:elevation="4dp"/>
 
+    <!-- Results Container -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginTop="10dp"
         android:background="@drawable/bg_search"
-        android:padding="22dp">
+        android:padding="16dp">
 
-        <!-- Progress bar untuk loading hasil pencarian -->
+        <!-- Progress bar for loading -->
         <ProgressBar
             android:id="@+id/pbSearch"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginTop="12dp"
             android:layout_gravity="center"
+            android:layout_marginTop="12dp"
             android:visibility="gone"/>
 
+        <!-- Results RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvResult"
             android:layout_width="match_parent"

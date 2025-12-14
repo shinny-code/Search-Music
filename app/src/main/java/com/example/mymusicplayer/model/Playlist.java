@@ -17,7 +17,6 @@ public class Playlist {
     public int userId; // Foreign key to User
     public String createdAt;
 
-    // Add this constructor
     public Playlist() {
         this.createdAt = String.valueOf(System.currentTimeMillis());
     }

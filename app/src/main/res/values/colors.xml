@@ -6,4 +6,11 @@
     <color name="purple">#7366FF</color>
     <color name="Dark">#1A1A1A</color>
 
+    <color name="primary">#FF80AA</color>
+    <color name="secondary">#7366FF</color>
+    <color name="background">#FFFFFF</color>
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
+    <color name="divider">#E0E0E0</color>
+
 </resources>

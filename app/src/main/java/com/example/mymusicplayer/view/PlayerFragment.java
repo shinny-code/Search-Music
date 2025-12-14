@@ -127,7 +127,6 @@ public class PlayerFragment extends Fragment {
         return v;
     }
 
-    // java
     private void setupListeners() {
 
         btnBack.setOnClickListener(view -> requireActivity().getOnBackPressedDispatcher().onBackPressed());

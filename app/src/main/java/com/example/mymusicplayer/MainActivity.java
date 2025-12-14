@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
 
-            return false; // default
+            return false;
         });
     }
 
