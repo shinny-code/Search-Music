@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Background gelap -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="18dp" />
+            <solid android:color="#1A1A1A" />
+        </shape>
+    </item>
+
+    <!-- Overlay ungu → pink -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="18dp" />
+            <gradient
+                android:startColor="#FF5ACD"
+                android:centerColor="#7366FF"
+                android:endColor="#0D0D0D"
+                android:useLevel="false"
+                />
+        </shape>
+    </item>
+
+</layer-list>
+
+

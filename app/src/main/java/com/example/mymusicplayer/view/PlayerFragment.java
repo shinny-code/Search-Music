@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.view;
 
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -18,7 +18,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.mymusicplayer.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -37,18 +39,20 @@ public class PlayerFragment extends Fragment {
     private ArrayList<String> titles;
     private ArrayList<String> artists;
     private ArrayList<String> artworks;
+
     private int currentIndexOriginal = 0;
 
     private MediaPlayer mediaPlayer;
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean isPrepared = false;
 
-    private ImageView btnPlay, btnPrev, btnNext, btnShuffle, btnLoop, ivArtwork;
+    private ImageView btnPlay, btnPrev, btnNext, btnShuffle, btnLoop, ivArtwork, btnBack;
     private SeekBar seekBar;
     private TextView tvTitle, tvArtist, tvDuration;
 
-    private ArrayList<Integer> playOrder = new ArrayList<>();
+    private final ArrayList<Integer> playOrder = new ArrayList<>();
     private int playPos = 0;
+
     private boolean shuffleEnabled = false;
     private boolean loopEnabled = false;
 
@@ -57,13 +61,16 @@ public class PlayerFragment extends Fragment {
                                              ArrayList<String> artists,
                                              ArrayList<String> artworks,
                                              int startIndex) {
+
         PlayerFragment f = new PlayerFragment();
         Bundle b = new Bundle();
+
         b.putStringArrayList(ARG_URLS, urls);
         b.putStringArrayList(ARG_TITLES, titles);
         b.putStringArrayList(ARG_ARTISTS, artists);
         b.putStringArrayList(ARG_ARTWORKS, artworks);
         b.putInt(ARG_INDEX, startIndex);
+
         f.setArguments(b);
         return f;
     }
@@ -71,6 +78,7 @@ public class PlayerFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Bundle a = getArguments();
         if (a != null) {
             urls = a.getStringArrayList(ARG_URLS);
@@ -79,17 +87,14 @@ public class PlayerFragment extends Fragment {
             artworks = a.getStringArrayList(ARG_ARTWORKS);
             currentIndexOriginal = a.getInt(ARG_INDEX, 0);
         }
+
         if (urls == null) urls = new ArrayList<>();
         if (titles == null) titles = new ArrayList<>();
         if (artists == null) artists = new ArrayList<>();
         if (artworks == null) artworks = new ArrayList<>();
 
-        buildPlayOrder(shuffleEnabled);
-
-        // Find playPos safely: if indexOf returns -1 (empty list), set to 0
-        int desiredOriginal = Math.max(0, Math.min(currentIndexOriginal, Math.max(0, urls.size() - 1)));
-        playPos = playOrder.isEmpty() ? 0 : playOrder.indexOf(desiredOriginal);
-        if (playPos < 0) playPos = 0;
+        buildPlayOrder(false);
+        playPos = Math.max(0, Math.min(currentIndexOriginal, urls.size() - 1));
     }
 
     @Nullable
@@ -97,12 +102,16 @@ public class PlayerFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View v = inflater.inflate(R.layout.fragment_player, container, false);
+
         btnPlay = v.findViewById(R.id.btnPlay);
         btnPrev = v.findViewById(R.id.btnPrev);
         btnNext = v.findViewById(R.id.btnNext);
         btnShuffle = v.findViewById(R.id.btnShuffle);
         btnLoop = v.findViewById(R.id.btnLoop);
+        btnBack = v.findViewById(R.id.btnBack);
+
         seekBar = v.findViewById(R.id.seekBar);
         tvTitle = v.findViewById(R.id.tvTitle);
         tvArtist = v.findViewById(R.id.tvArtist);
@@ -113,14 +122,17 @@ public class PlayerFragment extends Fragment {
         updateToggleTint(btnLoop, loopEnabled);
 
         setupListeners();
-        playAtPlayPos();
+        playAtCurrentIndex();
 
         return v;
     }
 
     private void setupListeners() {
+
+        btnBack.setOnClickListener(view -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
+
         btnPlay.setOnClickListener(view -> {
-            if (!isPrepared || mediaPlayer == null) return;
+            if (!isPrepared) return;
             if (mediaPlayer.isPlaying()) {
                 mediaPlayer.pause();
                 btnPlay.setImageResource(R.drawable.play);
@@ -131,20 +143,13 @@ public class PlayerFragment extends Fragment {
             }
         });
 
-        // Next/Prev should simply move track (no toggling booleans)
         btnNext.setOnClickListener(view -> playNext());
         btnPrev.setOnClickListener(view -> playPrevious());
 
         btnShuffle.setOnClickListener(view -> {
             shuffleEnabled = !shuffleEnabled;
             buildPlayOrder(shuffleEnabled);
-
-            // keep current track the same original index after rebuild
-            int currentOriginal = (playOrder.isEmpty() ? 0 : playOrder.get(Math.max(0, Math.min(playPos, playOrder.size()-1))));
-            // find new playPos matching currentOriginal
-            playPos = playOrder.indexOf(currentOriginal);
-            if (playPos < 0) playPos = 0;
-
+            playPos = playOrder.indexOf(currentIndexOriginal);
             updateToggleTint(btnShuffle, shuffleEnabled);
         });
 
@@ -155,7 +160,7 @@ public class PlayerFragment extends Fragment {
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override public void onProgressChanged(SeekBar sb, int progress, boolean fromUser) {
-                if (fromUser && mediaPlayer != null && isPrepared) {
+                if (fromUser && isPrepared) {
                     mediaPlayer.seekTo(progress);
                 }
             }
@@ -164,148 +169,124 @@ public class PlayerFragment extends Fragment {
         });
     }
 
-    private void updateToggleTint(ImageView iv, boolean enabled) {
-        int onColor = Color.WHITE;
-        int offColor = Color.parseColor("#A0A0A0"); // subtle gray when off
-        ImageViewCompat.setImageTintList(iv, ColorStateList.valueOf(enabled ? onColor : offColor));
+
+    private void buildPlayOrder(boolean shuffle) {
+        playOrder.clear();
+        for (int i = 0; i < urls.size(); i++) playOrder.add(i);
+        if (shuffle) Collections.shuffle(playOrder);
     }
 
-    private void loadArtworkIntoImageView(String imgArtwork) {
-        int placeholder = R.drawable.ic_launcher_background;
-        int errorDrawable = R.drawable.ic_launcher_background;
+    private void playAtCurrentIndex() {
+        if (urls.isEmpty()) return;
 
-        if (imgArtwork == null || imgArtwork.trim().isEmpty()) {
-            ivArtwork.setImageResource(placeholder);
-            return;
-        }
+        int original = playOrder.get(playPos);
+        currentIndexOriginal = original;
 
-        imgArtwork = imgArtwork.trim();
+        tvTitle.setText(titles.get(original));
+        tvArtist.setText(artists.get(original));
 
-        // Remote URL
-        if (imgArtwork.startsWith("http://") || imgArtwork.startsWith("https://")) {
-            Picasso.get()
-                    .load(imgArtwork)
-                    .placeholder(placeholder)
-                    .error(errorDrawable)
-                    .into(ivArtwork);
-            return;
-        }
+        loadArtwork(artworks.get(original));
+        prepareAudio(urls.get(original));
+    }
 
-        try {
-            int resId = Integer.parseInt(imgArtwork);
-            ivArtwork.setImageResource(resId);
-            return;
-        } catch (NumberFormatException ignored) {}
-
-        int resIdByName = getResources().getIdentifier(imgArtwork, "drawable", requireContext().getPackageName());
-        if (resIdByName != 0) {
-            ivArtwork.setImageResource(resIdByName);
+    private void loadArtwork(String art) {
+        if (art == null || art.isEmpty()) {
+            ivArtwork.setImageResource(R.drawable.ic_launcher_background);
             return;
         }
 
         Picasso.get()
-                .load(imgArtwork)
-                .placeholder(placeholder)
-                .error(errorDrawable)
+                .load(art)
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .fit()
+                .centerCrop()
                 .into(ivArtwork);
     }
 
-    private void buildPlayOrder(boolean shuffle) {
-        playOrder.clear();
-        int n = urls.size();
-        for (int i = 0; i < n; i++) playOrder.add(i);
-        if (shuffle) Collections.shuffle(playOrder);
-    }
-
-    private void playAtPlayPos() {
-        if (playOrder.isEmpty()) return;
-        if (playPos < 0 || playPos >= playOrder.size()) playPos = 0;
-
-        int originalIndex = playOrder.get(playPos);
-        currentIndexOriginal = originalIndex;
-        String url = (originalIndex >= 0 && originalIndex < urls.size()) ? urls.get(originalIndex) : "";
-        String title = (originalIndex >= 0 && originalIndex < titles.size()) ? titles.get(originalIndex) : "";
-        String artist = (originalIndex >= 0 && originalIndex < artists.size()) ? artists.get(originalIndex) : "";
-        String imgArtwork = (originalIndex >= 0 && originalIndex < artworks.size()) ? artworks.get(originalIndex) : "";
-
-        loadArtworkIntoImageView(imgArtwork);
-        tvTitle.setText(title);
-        tvArtist.setText(artist);
-
-        prepareAudio(url);
-    }
-
     private void playNext() {
-        if (playOrder.isEmpty()) return;
         if (playPos < playOrder.size() - 1) {
             playPos++;
-            playAtPlayPos();
+        } else if (loopEnabled) {
+            playPos = 0;
         } else {
-            if (loopEnabled) {
-                playPos = 0;
-                playAtPlayPos();
-            } else {
-                if (mediaPlayer != null && isPrepared) {
-                    mediaPlayer.pause();
-                    mediaPlayer.seekTo(mediaPlayer.getDuration());
-                    btnPlay.setImageResource(R.drawable.play);
-                }
-            }
+            stopPlayer();
+            return;
         }
+        playAtCurrentIndex();
     }
 
     private void playPrevious() {
-        if (playOrder.isEmpty()) return;
         if (playPos > 0) {
             playPos--;
-            playAtPlayPos();
-        } else {
-            if (loopEnabled) {
-                playPos = playOrder.size() - 1;
-                playAtPlayPos();
-            } else {
-                if (mediaPlayer != null && isPrepared) {
-                    mediaPlayer.seekTo(0);
-                }
-            }
+        } else if (loopEnabled) {
+            playPos = playOrder.size() - 1;
         }
+        playAtCurrentIndex();
     }
 
     private void prepareAudio(String url) {
         releasePlayer();
-        if (url == null || url.isEmpty()) return;
+
+        // Check if URL is valid
+        if (url == null || url.isEmpty() || !url.startsWith("http")) {
+            Toast.makeText(requireContext(), "Invalid audio URL", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         mediaPlayer = new MediaPlayer();
         try {
-            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build());
+            mediaPlayer.setAudioAttributes(
+                    new AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .build()
+            );
+
             mediaPlayer.setDataSource(url);
+
             mediaPlayer.setOnPreparedListener(mp -> {
                 isPrepared = true;
-                seekBar.setMax(mediaPlayer.getDuration());
-                tvDuration.setText(formatTime(mediaPlayer.getDuration()));
-                mediaPlayer.start();
+                seekBar.setMax(mp.getDuration());
+                tvDuration.setText(formatTime(mp.getDuration()));
+                mp.start();
                 btnPlay.setImageResource(R.drawable.pause);
                 updateSeekBar();
             });
-            mediaPlayer.setOnCompletionListener(mp -> {
-                playNext();
+
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                requireActivity().runOnUiThread(() -> {
+                    Toast.makeText(requireContext(), "Audio playback error", Toast.LENGTH_SHORT).show();
+                    btnPlay.setImageResource(R.drawable.play);
+                });
+                return true;
             });
+
+            mediaPlayer.setOnCompletionListener(mp -> playNext());
             mediaPlayer.prepareAsync();
+
         } catch (Exception e) {
             e.printStackTrace();
-            // Silently fail but release
+            requireActivity().runOnUiThread(() -> {
+                Toast.makeText(requireContext(), "Failed to load audio: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
             releasePlayer();
         }
     }
 
+    private void updateToggleTint(ImageView iv, boolean enabled) {
+        int onColor = Color.WHITE;
+        int offColor = Color.parseColor("#65FFFFFF");
+        ImageViewCompat.setImageTintList(iv,
+                ColorStateList.valueOf(enabled ? onColor : offColor)
+        );
+    }
+
     private void updateSeekBar() {
-        handler.removeCallbacksAndMessages(null);
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mediaPlayer != null && isPrepared) {
+                if (mediaPlayer != null && isPrepared && mediaPlayer.isPlaying()) {
                     seekBar.setProgress(mediaPlayer.getCurrentPosition());
                     handler.postDelayed(this, 500);
                 }
@@ -314,25 +295,34 @@ public class PlayerFragment extends Fragment {
     }
 
     private String formatTime(int ms) {
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(ms);
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(ms) % 60;
-        return String.format("%02d:%02d", minutes, seconds);
+        return String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(ms),
+                TimeUnit.MILLISECONDS.toSeconds(ms) % 60
+        );
+    }
+
+    private void stopPlayer() {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+            btnPlay.setImageResource(R.drawable.play);
+        }
     }
 
     private void releasePlayer() {
-        if (mediaPlayer != null) {
-            try { mediaPlayer.stop(); } catch (Exception ignored) {}
-            try { mediaPlayer.reset(); } catch (Exception ignored) {}
-            try { mediaPlayer.release(); } catch (Exception ignored) {}
-            mediaPlayer = null;
-            isPrepared = false;
-        }
+        if (mediaPlayer == null) return;
+
+        try { mediaPlayer.stop(); } catch (Exception ignored) {}
+        try { mediaPlayer.reset(); } catch (Exception ignored) {}
+        try { mediaPlayer.release(); } catch (Exception ignored) {}
+
+        mediaPlayer = null;
+        isPrepared = false;
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        releasePlayer();
         handler.removeCallbacksAndMessages(null);
+        releasePlayer();
     }
 }

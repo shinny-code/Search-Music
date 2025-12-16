@@ -1,4 +1,4 @@
-package com.example.mymusicplayer;
+package com.example.mymusicplayer.controller;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -12,7 +12,7 @@ public class MusicClient {
     public String searchSongs(String term, int limit, int offset) throws Exception {
         if (term == null) term = "";
         if (term.trim().isEmpty()) term = "a";
-        String encoded = URLEncoder.encode(term, StandardCharsets.UTF_8.name());
+        String encoded = URLEncoder.encode(term, StandardCharsets.UTF_8);
         String urlStr = "https://itunes.apple.com/search?term=" + encoded +
                 "&media=music&entity=song&limit=" + limit + "&offset=" + offset;
         URL url = new URL(urlStr);

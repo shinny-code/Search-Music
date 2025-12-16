@@ -1,42 +1,26 @@
 package com.example.mymusicplayer;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.mymusicplayer.view.MusicList;
+import com.example.mymusicplayer.view.Profile;
+import com.example.mymusicplayer.view.SearchMusic;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
-
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 public class MainActivity extends AppCompatActivity {
+
+    BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
         Fragment musicListFragment = new MusicList();
         Fragment searchMusicFragment = new SearchMusic();
@@ -44,18 +28,21 @@ public class MainActivity extends AppCompatActivity {
 
         setCurrentFragment(musicListFragment);
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
+        bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
 
             if (itemId == R.id.musicList) {
                 setCurrentFragment(musicListFragment);
+                return true;
             } else if (itemId == R.id.search_music) {
                 setCurrentFragment(searchMusicFragment);
+                return true;
             } else if (itemId == R.id.profile) {
                 setCurrentFragment(profileFragment);
+                return true;
             }
 
-            return true;
+            return false;
         });
     }
 
