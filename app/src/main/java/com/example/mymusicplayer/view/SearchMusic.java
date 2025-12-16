@@ -43,7 +43,7 @@ public class SearchMusic extends Fragment {
 
     private ExecutorService executor;
     private MusicAdapter adapter;
-    private MusicClient client = new MusicClient();
+    private final MusicClient client = new MusicClient();
 
     private AppDatabase db;
     private int currentUserId = -1;

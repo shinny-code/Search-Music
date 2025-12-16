@@ -43,14 +43,14 @@ public class PlayerFragment extends Fragment {
     private int currentIndexOriginal = 0;
 
     private MediaPlayer mediaPlayer;
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean isPrepared = false;
 
     private ImageView btnPlay, btnPrev, btnNext, btnShuffle, btnLoop, ivArtwork, btnBack;
     private SeekBar seekBar;
     private TextView tvTitle, tvArtist, tvDuration;
 
-    private ArrayList<Integer> playOrder = new ArrayList<>();
+    private final ArrayList<Integer> playOrder = new ArrayList<>();
     private int playPos = 0;
 
     private boolean shuffleEnabled = false;

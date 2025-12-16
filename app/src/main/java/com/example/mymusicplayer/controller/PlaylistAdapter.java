@@ -19,7 +19,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         void onPlaylistClick(Playlist playlist);
     }
 
-    private List<Playlist> playlists;
+    private final List<Playlist> playlists;
     private final OnPlaylistClickListener listener;
 
     public PlaylistAdapter(List<Playlist> playlists, OnPlaylistClickListener listener) {

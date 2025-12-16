@@ -139,11 +139,7 @@ public class RegisterDialogFragment extends DialogFragment {
     }
 
     private boolean validateForm() {
-        boolean isValid = true;
-
-        if (!validateUsername()) {
-            isValid = false;
-        }
+        boolean isValid = validateUsername();
 
         if (!validateEmail()) {
             isValid = false;

@@ -37,7 +37,7 @@ public class PlaylistDetailFragment extends Fragment {
     private ProgressBar progressBar;
 
     private PlaylistSongAdapter adapter;
-    private List<PlaylistSong> songs = new ArrayList<>();
+    private final List<PlaylistSong> songs = new ArrayList<>();
     private AppDatabase db;
 
     public static PlaylistDetailFragment newInstance(int playlistId, String playlistName) {

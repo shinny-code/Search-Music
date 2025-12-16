@@ -9,8 +9,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,8 +32,8 @@ import com.example.mymusicplayer.model.Playlist;
 import com.example.mymusicplayer.model.PlaylistSong;
 import com.example.mymusicplayer.model.PlaylistSongCrossRef;
 import com.example.mymusicplayer.R;
-import com.example.mymusicplayer.controller.TrendingAdapter;
-import com.example.mymusicplayer.model.TrendingModel;
+import com.example.mymusicplayer.controller.ArtistAdapter;
+import com.example.mymusicplayer.model.Artist;
 import com.example.mymusicplayer.model.User;
 import com.example.mymusicplayer.database.AppDatabase;
 
@@ -46,8 +49,10 @@ import java.util.concurrent.Executors;
 public class MusicList extends Fragment {
 
     private RecyclerView recyclerView;
+    private RecyclerView rvArtists;
     private ProgressBar progressBar;
     private MusicAdapter adapter;
+    private ArtistAdapter artistAdapter;
     private ExecutorService executor;
     private final MusicClient musicClient = new MusicClient();
 
@@ -61,7 +66,7 @@ public class MusicList extends Fragment {
     private AppDatabase db;
     private int currentUserId = -1;
     private TextView tvUserName;
-    private User currentUser; // Store current user object
+    private User currentUser;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,15 +92,16 @@ public class MusicList extends Fragment {
         View view = inflater.inflate(R.layout.fragment_music_list, container, false);
 
         ImageView ivProfile = view.findViewById(R.id.ivProfile);
-        tvUserName = view.findViewById(R.id.tvUserName); // Initialize the TextView
+        tvUserName = view.findViewById(R.id.tvUserName);
 
         updateUserName();
-
         loadProfilePicture(ivProfile);
 
         recyclerView = view.findViewById(R.id.rvMusic);
+        rvArtists = view.findViewById(R.id.rvArtists);
         progressBar = view.findViewById(R.id.pbLoading);
 
+        // Setup main music list
         layoutManager = new LinearLayoutManager(requireContext());
         recyclerView.setLayoutManager(layoutManager);
 
@@ -138,6 +144,20 @@ public class MusicList extends Fragment {
 
         recyclerView.setAdapter(adapter);
 
+        // Setup artists grid
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(requireContext(), 2);
+        rvArtists.setLayoutManager(gridLayoutManager);
+
+        // Create adapter ONCE
+        artistAdapter = new ArtistAdapter(new ArrayList<>(), artist -> {
+            showArtistSongs(artist);
+        });
+        rvArtists.setAdapter(artistAdapter);
+
+        // Load popular artists
+        loadPopularArtists();
+
+        // Other click listeners
         ImageView ivSearch = view.findViewById(R.id.ivSearch);
         ImageView ivFav = view.findViewById(R.id.ivFav);
 
@@ -169,24 +189,51 @@ public class MusicList extends Fragment {
         });
 
         setupTabListeners(view);
-
-        RecyclerView rvTrending = view.findViewById(R.id.rvRecommended);
-        rvTrending.setLayoutManager(
-                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        );
-
-        List<TrendingModel> trending = new ArrayList<>();
-        trending.add(new TrendingModel(
-                "Discover weekly",
-                "The original slow instrumental best playlist",
-                R.drawable.girl_headphone
-        ));
-
-        TrendingAdapter trendingAdapter = new TrendingAdapter(trending);
-        rvTrending.setAdapter(trendingAdapter);
-
         loadMore();
         return view;
+    }
+
+    private void loadPopularArtists() {
+        Log.d("MusicList", "loadPopularArtists called");
+
+        List<Artist> popularArtists = new ArrayList<>();
+
+        // Use reliable image URLs
+        popularArtists.add(new Artist("STAYC", "K-Pop", "STAYC",
+                "https://i.scdn.co/image/ab67616d0000b273fdb32eb57423828c253e23bb", 45));
+
+        popularArtists.add(new Artist("MAMAMOO", "K-Pop, R&B", "MAMAMOO",
+                "https://i.scdn.co/image/ab6761610000e5ebe12972169702affd7a4c48ec", 120));
+
+        popularArtists.add(new Artist("Mocca", "Indie Pop, Jazz", "Mocca band",
+                "https://blue.kumparan.com/image/upload/fl_progressive,fl_lossy,c_fill,f_auto,q_auto:best,w_640/v1614670937/oyib2z1youul732qeuro.jpg", 35));
+
+        popularArtists.add(new Artist("Blackpink", "K-Pop, EDM", "Blackpink",
+                "https://i.scdn.co/image/ab676161000051749b57f5eccf180a0049be84b3", 85));
+
+        Log.d("MusicList", "Loaded " + popularArtists.size() + " artists");
+        artistAdapter.setData(popularArtists);
+        Log.d("MusicList", "Adapter has " + artistAdapter.getItemCount() + " items");
+    }
+
+    private void showArtistSongs(Artist artist) {
+        try {
+            Log.d("MusicList", "showArtistSongs called for artist: " + artist.getName());
+
+            // Create ArtistSongsFragment with the artist data
+            ArtistSongsFragment artistSongsFragment = ArtistSongsFragment.newInstance(artist);
+
+            // Navigate to artist songs fragment
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.flFragment, artistSongsFragment)
+                    .addToBackStack("artist_songs")
+                    .commit();
+
+        } catch (Exception e) {
+            Log.e("MusicList", "Error showing artist songs: " + e.getMessage(), e);
+            Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void updateUserName() {
@@ -396,7 +443,6 @@ public class MusicList extends Fragment {
         }
 
         executor.execute(() -> {
-            // Get only this user's playlists
             List<Playlist> playlists = db.playlistDao().getUserPlaylists(currentUserId);
 
             if (getActivity() == null) return;
@@ -409,7 +455,6 @@ public class MusicList extends Fragment {
                 dialogOptions.add("Create new playlist...");
 
                 if (playlists.isEmpty()) {
-                    // If user has no playlists, suggest creating one
                     showCreatePlaylistDialog(music);
                     return;
                 }
@@ -430,7 +475,6 @@ public class MusicList extends Fragment {
     }
 
     private void showCreatePlaylistDialog(Music music) {
-        // Check if user is logged in
         if (currentUserId == -1) {
             Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show();
             return;
@@ -448,7 +492,6 @@ public class MusicList extends Fragment {
             if (!playlistName.isEmpty()) {
                 executor.execute(() -> {
                     try {
-                        // Create new playlist WITH USER ID
                         Playlist newPlaylist = new Playlist();
                         newPlaylist.name = playlistName;
                         newPlaylist.userId = currentUserId;

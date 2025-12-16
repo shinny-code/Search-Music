@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -16,7 +17,7 @@
         <RelativeLayout
             android:id="@+id/bannerContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="170dp"
             android:minHeight="180dp"
             android:background="@drawable/banner_gradient"
             android:padding="16dp"
@@ -65,65 +66,85 @@
                 android:layout_marginEnd="12dp"
                 android:src="@drawable/heart_white"/>
 
-            <!-- tabs -->
-            <LinearLayout
-                android:id="@+id/tabFilter"
+            <!-- Replace the entire tabs section (from line 80 to 117) with this: -->
+
+            <!-- Horizontal Scrollable Tabs -->
+            <HorizontalScrollView
+                android:id="@+id/tabsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:orientation="horizontal"
                 android:layout_marginTop="60dp"
                 android:layout_marginBottom="12dp"
-                android:gravity="center_horizontal">
+                android:fillViewport="true"
+                android:scrollbars="none">
 
-                <TextView
-                    android:id="@+id/tabAll"
+                <LinearLayout
+                    android:id="@+id/tabFilter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="All"
-                    android:textColor="#000000"
-                    android:background="@drawable/tab_selected"
-                    android:textStyle="bold"
-                    android:layout_marginEnd="8dp"/>
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    android:gravity="center_vertical">
 
-                <TextView
-                    android:id="@+id/tabNew"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="New Release"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/tab_unselected"
-                    android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tabAll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="All"
+                        android:textColor="#000000"
+                        android:background="@drawable/tab_selected"
+                        android:textStyle="bold"
+                        android:layout_marginHorizontal="4dp"
+                        android:minWidth="60dp"
+                        android:gravity="center"/>
 
-                <TextView
-                    android:id="@+id/tabTrending"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Trending"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/tab_unselected"
-                    android:layout_marginEnd="8dp"/>
+                    <TextView
+                        android:id="@+id/tabNew"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="New Release"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/tab_unselected"
+                        android:layout_marginHorizontal="4dp"
+                        android:minWidth="100px"
+                        android:gravity="center"/>
 
-                <TextView
-                    android:id="@+id/tabTop"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Top"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/tab_unselected"/>
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/tabTrending"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Trending"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/tab_unselected"
+                        android:layout_marginHorizontal="4dp"
+                        android:minWidth="80dp"
+                        android:gravity="center"/>
+
+                    <TextView
+                        android:id="@+id/tabTop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Top"
+                        android:textColor="#FFFFFF"
+                        android:background="@drawable/tab_unselected"
+                        android:layout_marginHorizontal="4dp"
+                        android:minWidth="60dp"
+                        android:gravity="center"/>
+                </LinearLayout>
+            </HorizontalScrollView>
 
         </RelativeLayout>
 
-        <!-- =========================== TRENDING ======================================================== -->
+        <!-- =========================== POPULAR ARTISTS ======================================================== -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -136,18 +157,18 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Trending"
+                android:text="Popular Artists"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
         </LinearLayout>
 
+        <!-- Artists Grid -->
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvRecommended"
+            android:id="@+id/rvArtists"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            android:layout_height="wrap_content"
+            android:paddingVertical="8dp"/>
 
         <!-- ====================== Top Daily Playlist ===================== -->
         <LinearLayout
@@ -183,7 +204,7 @@
             android:layout_marginBottom="24dp"
             android:visibility="gone"/>
 
-        <!-- Bottom padding for better scrolling -->
+        <!-- Bottom padding -->
         <View
             android:layout_width="match_parent"
             android:layout_height="24dp" />
